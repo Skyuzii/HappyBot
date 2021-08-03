@@ -1,5 +1,4 @@
-﻿using HappyBot.Application.Common.Interfaces.ReplyKeyboardButton;
-using HappyBot.Application.Common.Interfaces.Storages;
+﻿using HappyBot.Application.Common.Interfaces.Storages;
 using HappyBot.Application.Common.Storages;
 using Microsoft.Extensions.DependencyInjection;
 

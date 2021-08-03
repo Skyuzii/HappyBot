@@ -1,10 +1,8 @@
 ﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using HappyBot.Application.Common.Interfaces.Storages;
 using HappyBot.Application.Common.Models;
 using HappyBot.Infrastructure.Database;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;

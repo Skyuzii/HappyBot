@@ -7,5 +7,11 @@
         public int TelegramBotId { get; set; }
         
         public int UserId { get; set; }
+        
+        public string? LastButton { get; set; }
+
+        public string? Argument { get; set; }
+
+        public int? LastInlineKeyboardMessageId { get; set; }
     }
 }

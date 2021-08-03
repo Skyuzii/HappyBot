@@ -1,5 +1,4 @@
-﻿using System;
-using HappyBot.Infrastructure.Database;
+﻿using HappyBot.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

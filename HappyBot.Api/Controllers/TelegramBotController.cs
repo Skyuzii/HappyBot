@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using HappyBot.Application.Common.Interfaces.Brokers;
 using HappyBot.Application.Common.Interfaces.Storages;
 using Microsoft.AspNetCore.Mvc;

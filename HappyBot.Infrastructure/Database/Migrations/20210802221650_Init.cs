@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace HappyBot.Infrastructure.Migrations
+namespace HappyBot.Infrastructure.Database.Migrations
 {
     public partial class Init : Migration
     {
