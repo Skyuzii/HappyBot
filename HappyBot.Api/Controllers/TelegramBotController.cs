@@ -28,13 +28,13 @@ namespace HappyBot.Api.Controllers
             _tlgCommandBrokerMinorBot = tlgCommandBrokerMinorBot;
         }
         
-        [HttpPost("{token}/{telegramBotId}")]
-        public async Task Handle(string token, int telegramBotId, [FromBody] Update update)
+        [HttpPost("{token}")]
+        public async Task Handle(string token, [FromBody] Update update)
         {
-            var telegramBot = _tlgBotStorage.Get(telegramBotId);
+            var telegramBot = _tlgBotStorage.Get(token);
             if (telegramBot == null)
             {
-                _logger.LogError($"Telegram bot not found -> {telegramBotId} - {token}");
+                _logger.LogError($"Telegram bot not found -> {token}");
                 return;
             }
             

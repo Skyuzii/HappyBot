@@ -11,41 +11,49 @@ namespace HappyBot.Application.Common.Storages
 {
     public class TlgBotStorage : ITlgBotStorage
     {
-        private ApplicationDbContext _dbContext;
         private readonly SettingsTelegramBot _settingsTelegramBot;
         private ConcurrentDictionary<int, TelegramBotDto> _telegramBots;
 
         public TlgBotStorage(IServiceScopeFactory serviceScopeFactory)
         {
             using var scope = serviceScopeFactory.CreateScope();
-            _dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             _settingsTelegramBot = scope.ServiceProvider.GetRequiredService<IOptions<SettingsTelegramBot>>().Value;
 
-            InitTelegramBots();
-        }
-
-        public void InitTelegramBots()
-        {
-            var res = _dbContext.TelegramBots.ToList();
-            _telegramBots = new ConcurrentDictionary<int, TelegramBotDto>(_dbContext.TelegramBots.ToDictionary(
+            _telegramBots = new ConcurrentDictionary<int, TelegramBotDto>(dbContext.TelegramBots.ToDictionary(
                 x => x.Id, telegramBot => new TelegramBotDto
                 {
                     Id = telegramBot.Id,
                     Token = telegramBot.Token,
-                    Client = new TelegramBotClient(telegramBot.Token),
-                    IsMainBot = telegramBot.Token == _settingsTelegramBot.SettingsMainBot.Token
+                    IsMainBot = telegramBot.IsMain,
+                    IsEnable = telegramBot.IsEnable,
+                    Client = new TelegramBotClient(telegramBot.Token)
                 }));
+            
+            UpdateWebhooks();
+        }
+
+        public void UpdateWebhook(TelegramBotDto telegramBot)
+        {
+            telegramBot.Client.SetWebhookAsync($"{_settingsTelegramBot.Url}/api/TelegramBot/{telegramBot.Token}");
         }
 
         public void UpdateWebhooks()
         {
-            foreach (var telegramBot in _telegramBots.Select(x => x.Value))
+            foreach (var telegramBot in _telegramBots.Where(x => x.Value.IsEnable).Select(x => x.Value))
             {
-                telegramBot.Client.SetWebhookAsync($"{_settingsTelegramBot.Url}/api/TelegramBot/{telegramBot.Token}/{telegramBot.Id}");
-                //telegramBot.Client.SetWebhookAsync($"{_settingsTelegramBot.Url}/api/TelegramBot/{telegramBot.Token}");
+                UpdateWebhook(telegramBot);
             }
         }
-        
+
         public TelegramBotDto? Get(int telegramBotId) => _telegramBots.ContainsKey(telegramBotId) ? _telegramBots[telegramBotId] : null;
+
+        public TelegramBotDto? Get(string token)
+        {
+            var telegramBot = _telegramBots.FirstOrDefault(x => x.Value.Token == token);
+            return telegramBot.Equals(default) 
+                ? null 
+                : telegramBot.Value;
+        }
     }
 }

@@ -21,14 +21,14 @@ namespace HappyBot.Application.MainBot
     {
         private readonly IChatStorage _chatStorage;
         private readonly ApplicationDbContext _dbContext;
-        private readonly Logger<TlgCommandBroker> _logger;
+        private readonly ILogger<TlgCommandBroker> _logger;
         private readonly Dictionary<string, IButton> _buttons;
         private readonly Dictionary<UpdateType, Func<ITelegramBotClient, ChatInfo, Update, Task>> _updateHandlers;
 
         public TlgCommandBroker(
             IChatStorage chatStorage,
             ApplicationDbContext dbContext,
-            Logger<TlgCommandBroker> logger,
+            ILogger<TlgCommandBroker> logger,
             IEnumerable<IReplyKeyboardButtonMainBot> replyKeyboardButtonsMainBot,
             IEnumerable<IInlineKeyboardButtonMainBot> inlineKeyboardButtonMainBot)
         {
@@ -64,7 +64,7 @@ namespace HappyBot.Application.MainBot
             {
                 chatInfo.LastButton = null;
                 await telegramBotDto.Client.SendTextMessageAsync(chatInfo.TelegramId, "Произошла ошибка");
-                _logger.LogError(ex, $"Update handler {updateHandler.Value.Method.Name} -> {ex.Message} [chatId: {chatInfo.TelegramId}]");
+                _logger.LogError(ex, $"{updateHandler.Value.Method.Name} -> {ex.Message} [chatId: {chatInfo.TelegramId}]");
             }
 
         }
@@ -83,15 +83,19 @@ namespace HappyBot.Application.MainBot
                 };
 					
                 _chatStorage.Add(chatKey, chatInfo);
-                
-                var user = new User
+
+                var user = _dbContext.Users.FirstOrDefault(x => x.TelegramId == chatId.Value);
+                if (user == null)
                 {
-                    TelegramId = chatId.Value,
-                    CreateDate = DateTime.Now,
-                    Name = $"{update.Message?.Chat.Username}"
-                };
-                await _dbContext.Users.AddAsync(user);
-                await _dbContext.SaveChangesAsync();
+                    user = new User
+                    {
+                        TelegramId = chatId.Value,
+                        CreateDate = DateTime.Now,
+                        Name = $"{update.Message.Chat.Username}"
+                    };
+                    await _dbContext.Users.AddAsync(user);
+                    await _dbContext.SaveChangesAsync();
+                }
 
                 chatInfo.UserId = user.Id;
             }

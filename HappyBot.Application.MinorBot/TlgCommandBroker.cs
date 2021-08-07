@@ -19,16 +19,16 @@ namespace HappyBot.Application.MinorBot
 {
     public class TlgCommandBroker : ITlgCommandBrokerMinorBot
     {
-         private readonly IChatStorage _chatStorage;
+        private readonly IChatStorage _chatStorage;
         private readonly ApplicationDbContext _dbContext;
-        private readonly Logger<TlgCommandBroker> _logger;
+        private readonly ILogger<TlgCommandBroker> _logger;
         private readonly Dictionary<string, IButton> _buttons;
         private readonly Dictionary<UpdateType, Func<ITelegramBotClient, ChatInfo, Update, Task>> _updateHandlers;
 
         public TlgCommandBroker(
             IChatStorage chatStorage,
             ApplicationDbContext dbContext,
-            Logger<TlgCommandBroker> logger,
+            ILogger<TlgCommandBroker> logger,
             IEnumerable<IReplyKeyboardButtonMinorBot> replyKeyboardButtonsMinorBot,
             IEnumerable<IInlineKeyboardButtonMinorBot> inlineKeyboardButtonMinorBot)
         {
@@ -64,9 +64,8 @@ namespace HappyBot.Application.MinorBot
             {
                 chatInfo.LastButton = null;
                 await telegramBotDto.Client.SendTextMessageAsync(chatInfo.TelegramId, "Произошла ошибка");
-                _logger.LogError(ex, $"Update handler {updateHandler.Value.Method.Name} -> {ex.Message} [chatId: {chatInfo.TelegramId}]");
+                _logger.LogError(ex, $"{updateHandler.Value.Method.Name} -> {ex.Message} [chatId: {chatInfo.TelegramId}]");
             }
-
         }
 
         private async Task<ChatInfo> GetChat(TelegramBotDto telegramBotDto, Update update)

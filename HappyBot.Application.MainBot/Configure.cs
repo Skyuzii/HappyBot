@@ -1,4 +1,7 @@
 ﻿using HappyBot.Application.Common.Interfaces.Brokers;
+using HappyBot.Application.Common.Interfaces.Buttons;
+using HappyBot.Application.Common.Interfaces.ReplyKeyboardButton;
+using HappyBot.Application.MainBot.ReplyKeyboardButtons;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HappyBot.Application.MainBot
@@ -7,7 +10,8 @@ namespace HappyBot.Application.MainBot
     {
         public static IServiceCollection AddMainBot(this IServiceCollection services)
         {
-            services.AddSingleton<ITlgCommandBrokerMainBot, TlgCommandBroker>();
+            services.AddScoped<ITlgCommandBrokerMainBot, TlgCommandBroker>();
+            services.AddScoped<IReplyKeyboardButtonMainBot, StartReplyKeyboardButton>();
             
             return services;
         }

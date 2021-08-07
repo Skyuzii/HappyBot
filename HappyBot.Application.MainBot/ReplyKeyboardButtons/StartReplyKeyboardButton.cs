@@ -1,18 +1,25 @@
 ﻿using System.Threading.Tasks;
 using HappyBot.Application.Common.Interfaces.Buttons;
+using HappyBot.Application.Common.Interfaces.ReplyKeyboardButton;
 using HappyBot.Application.Common.Models;
+using HappyBot.Application.MainBot.Constants;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace HappyBot.Application.MainBot.ReplyKeyboardButtons
 {
-    public class StartReplyKeyboardButton : IButton
+    public class StartReplyKeyboardButton : IReplyKeyboardButtonMainBot
     {
-        public string Name { get; }
+        public string Name => ReplyKeyboardButtonConstants.START;
 
-        public Task Execute(ITelegramBotClient botClient, ChatInfo chatInfo, Message message)
+        public async Task Execute(ITelegramBotClient botClient, ChatInfo chatInfo, Message message)
         {
-            throw new System.NotImplementedException();
+            var msg = $"Добро пожаловать\n" +
+                      $"Вас привествует Happy Bot\n" +
+                      $"Хотите сделать необычный подарок для любимого человека?\n" +
+                      $"Я вам с радостью помогу\n";
+
+            await botClient.SendTextMessageAsync(chatInfo.TelegramId, msg);
         }
     }
 }

@@ -12,5 +12,9 @@ namespace HappyBot.Domain.Entities
         public int UserId { get; set; }
         
         public User User { get; set; }
+
+        public bool IsMain { get; set; }
+
+        public bool IsEnable { get; set; }
     }
 }
