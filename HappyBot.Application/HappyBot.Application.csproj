@@ -6,15 +6,13 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="AutoMapper" Version="10.1.1" />
+      <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.1" />
       <PackageReference Include="Telegram.Bot" Version="16.0.2" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\HappyBot.Infrastructure\HappyBot.Infrastructure.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Common" />
     </ItemGroup>
 
 </Project>

@@ -6,6 +6,7 @@ using HappyBot.Application.Common.Interfaces.Brokers;
 using HappyBot.Application.Common.Interfaces.Buttons;
 using HappyBot.Application.Common.Interfaces.InlineKeyboardButton;
 using HappyBot.Application.Common.Interfaces.ReplyKeyboardButton;
+using HappyBot.Application.Common.Interfaces.Services;
 using HappyBot.Application.Common.Interfaces.Storages;
 using HappyBot.Application.Common.Models;
 using HappyBot.Infrastructure.Database;
@@ -22,24 +23,27 @@ namespace HappyBot.Application.MainBot
         private readonly IChatStorage _chatStorage;
         private readonly ApplicationDbContext _dbContext;
         private readonly ILogger<TlgCommandBroker> _logger;
+        private readonly ITlgMenuServiceMainBot _tlgMenuService;
         private readonly Dictionary<string, IButton> _buttons;
-        private readonly Dictionary<UpdateType, Func<ITelegramBotClient, ChatInfo, Update, Task>> _updateHandlers;
+        private readonly Dictionary<UpdateType, Func<ITelegramBotClient, ChatInfo, Update, string, Task>> _updateHandlers;
 
         public TlgCommandBroker(
             IChatStorage chatStorage,
             ApplicationDbContext dbContext,
             ILogger<TlgCommandBroker> logger,
-            IEnumerable<IReplyKeyboardButtonMainBot> replyKeyboardButtonsMainBot,
-            IEnumerable<IInlineKeyboardButtonMainBot> inlineKeyboardButtonMainBot)
+            ITlgMenuServiceMainBot tlgMenuService,
+            IEnumerable<IReplyKBMainBot> replyKeyboardButtonsMainBot,
+            IEnumerable<IInlineKBMainBot> inlineKeyboardButtonMainBot)
         {
             _chatStorage = chatStorage;
             _dbContext = dbContext;
             _logger = logger;
+            _tlgMenuService = tlgMenuService;
             _buttons = replyKeyboardButtonsMainBot
                 .Concat<IButton>(inlineKeyboardButtonMainBot)
                 .ToDictionary(x => x.Name, y => y);
             
-            _updateHandlers = new Dictionary<UpdateType, Func<ITelegramBotClient, ChatInfo, Update, Task>>
+            _updateHandlers = new Dictionary<UpdateType, Func<ITelegramBotClient, ChatInfo, Update, string, Task>>
             {
                 {UpdateType.Message, ParseMessage},
                 {UpdateType.CallbackQuery, ParseCallbackQuery}
@@ -58,7 +62,7 @@ namespace HappyBot.Application.MainBot
 
             try
             {
-                await updateHandler.Value.Invoke(telegramBotDto.Client, chatInfo, update);
+                await updateHandler.Value.Invoke(telegramBotDto.Client, chatInfo, update, null);
             }
             catch (Exception ex)
             {
@@ -103,44 +107,82 @@ namespace HappyBot.Application.MainBot
             return chatInfo;
         }
         
-        private async Task ParseMessage(ITelegramBotClient telegramBotClient, ChatInfo chatInfo, Update update)
+        private async Task DeleteMessageLastInlineKeyboardMessage(ITelegramBotClient telegramBotClient, ChatInfo chatInfo)
+        {
+            try
+            {
+                await telegramBotClient.DeleteMessageAsync(chatInfo.TelegramId, chatInfo.LastInlineKeyboardMessageId!.Value);
+            }
+            finally
+            {
+                chatInfo.LastInlineKeyboardMessageId = null;
+            }
+        }
+
+        
+        private async Task ParseMessage(ITelegramBotClient telegramBotClient, ChatInfo chatInfo, Update update, string message = null)
         {
             if (update.Message == null) return;
-            var msgText = (update.Message.Text ?? update.Message.Caption).Trim();
-			
-            await CommonParseUpdate(telegramBotClient, chatInfo, msgText, update.Message);
-        }
-		
-        private async Task ParseCallbackQuery(ITelegramBotClient telegramBotClient, ChatInfo chatInfo, Update update)
-        {
-            var msgText = update.CallbackQuery?.Data?.Trim();
-            if (msgText == null) return;
-
-            await CommonParseUpdate(telegramBotClient, chatInfo, msgText, update.CallbackQuery.Message);
-        }
-
-        private async Task CommonParseUpdate(ITelegramBotClient telegramBotClient, ChatInfo chatInfo, string msgText, Message message)
-        {
+            message ??= (update.Message.Text ?? update.Message.Caption).Trim();
+            
             if (chatInfo.LastInlineKeyboardMessageId.HasValue)
             {
-                // await DeleteMessageAsync(telegramBotClient, chatInfo);
+                await DeleteMessageLastInlineKeyboardMessage(telegramBotClient, chatInfo);
             }
-            if(_buttons.ContainsKey(msgText))
+            
+            if(_buttons.ContainsKey(message))
             {
                 chatInfo.Argument = null;
-                chatInfo.LastButton = msgText;
-                await _buttons[msgText].Execute(telegramBotClient, chatInfo, message);
+                chatInfo.LastButton = message;
+                await _buttons[message].Execute(telegramBotClient, chatInfo, update);
             }
             else if (chatInfo.LastButton != null && _buttons.ContainsKey(chatInfo.LastButton))
             {
-                chatInfo.Argument = msgText;
-                await _buttons[chatInfo.LastButton].Execute(telegramBotClient, chatInfo, message);
+                chatInfo.Argument = message;
+                await _buttons[chatInfo.LastButton].Execute(telegramBotClient, chatInfo, update);
             }
             else
             {
-                chatInfo.LastButton = null;
-                chatInfo.LastInlineKeyboardMessageId = (await telegramBotClient.SendTextMessageAsync(chatInfo.TelegramId, "Неизвестная команда")).MessageId;
+                await ParseCallbackQuery(telegramBotClient, chatInfo, update, message);
             }
+        }
+
+        private async Task ParseCallbackQuery(ITelegramBotClient telegramBotClient, ChatInfo chatInfo, Update update, string message = null)
+        {
+            if (message == null)
+            {
+                message = update.CallbackQuery.Data;
+            }
+            else
+            {
+                chatInfo.Argument = message;
+                message = chatInfo.LastButton;
+            }
+
+            if (chatInfo.LastInlineKeyboardMessageId.HasValue)
+            {
+                await DeleteMessageLastInlineKeyboardMessage(telegramBotClient, chatInfo);
+            }
+
+            var index = message.IndexOf('/');
+            if (index == -1)
+            {
+                await telegramBotClient.SendTextMessageAsync(chatInfo.TelegramId, "Главное меню", replyMarkup: _tlgMenuService.GetMainMenu());
+                return;
+            }
+
+            var callback = message.Substring(0, index + 1);
+            if (_buttons.ContainsKey(callback))
+            {
+                if (update.CallbackQuery != null)
+                    chatInfo.LastButton = callback;
+    
+                await _buttons[callback].Execute(telegramBotClient, chatInfo, update);
+                return;
+            }
+
+            chatInfo.LastButton = null;
+            chatInfo.LastInlineKeyboardMessageId = (await telegramBotClient.SendTextMessageAsync(chatInfo.TelegramId, "Неизвестная команда")).MessageId;
         }
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace HappyBot.Infrastructure.Database.Migrations
+namespace HappyBot.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -84,6 +84,9 @@ namespace HappyBot.Infrastructure.Database.Migrations
                     b.Property<bool>("IsMain")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Token")
                         .HasColumnType("nvarchar(max)");
 
@@ -121,7 +124,7 @@ namespace HappyBot.Infrastructure.Database.Migrations
             modelBuilder.Entity("HappyBot.Domain.Entities.Button", b =>
                 {
                     b.HasOne("HappyBot.Domain.Entities.TelegramBot", "TelegramBot")
-                        .WithMany()
+                        .WithMany("Buttons")
                         .HasForeignKey("TelegramBotId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -154,6 +157,11 @@ namespace HappyBot.Infrastructure.Database.Migrations
             modelBuilder.Entity("HappyBot.Domain.Entities.Button", b =>
                 {
                     b.Navigation("Files");
+                });
+
+            modelBuilder.Entity("HappyBot.Domain.Entities.TelegramBot", b =>
+                {
+                    b.Navigation("Buttons");
                 });
 
             modelBuilder.Entity("HappyBot.Domain.Entities.User", b =>

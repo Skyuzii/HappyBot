@@ -17,7 +17,7 @@ namespace HappyBot.Application.Common.Interfaces.Buttons
         /// </summary>
         /// <param name="botClient">Телеграм бот клиент</param>
         /// <param name="chatInfo">Информация о текущем чате</param>
-        /// <param name="message">Обновление из телеграм</param>
-        Task Execute(ITelegramBotClient botClient, ChatInfo chatInfo, Message message);
+        /// <param name="update">Обновление из телеграм</param>
+        Task Execute(ITelegramBotClient botClient, ChatInfo chatInfo, Update update);
     }
 }

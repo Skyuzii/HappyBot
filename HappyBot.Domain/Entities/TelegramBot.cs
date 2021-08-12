@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HappyBot.Domain.Entities
 {
@@ -6,6 +7,8 @@ namespace HappyBot.Domain.Entities
     public class TelegramBot
     {
         public int Id { get; set; }
+
+        public string Name { get; set; }
         
         public string Token { get; set; }
         
@@ -16,5 +19,7 @@ namespace HappyBot.Domain.Entities
         public bool IsMain { get; set; }
 
         public bool IsEnable { get; set; }
+
+        public List<Button> Buttons { get; set; }
     }
 }

@@ -31,7 +31,7 @@ namespace HappyBot.Api.Controllers
         [HttpPost("{token}")]
         public async Task Handle(string token, [FromBody] Update update)
         {
-            var telegramBot = _tlgBotStorage.Get(token);
+            var telegramBot = _tlgBotStorage.GetByToken(token);
             if (telegramBot == null)
             {
                 _logger.LogError($"Telegram bot not found -> {token}");

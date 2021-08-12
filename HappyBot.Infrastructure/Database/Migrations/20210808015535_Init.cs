@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace HappyBot.Infrastructure.Database.Migrations
+namespace HappyBot.Infrastructure.Migrations
 {
     public partial class Init : Migration
     {
@@ -28,8 +28,11 @@ namespace HappyBot.Infrastructure.Database.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Token = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserId = table.Column<int>(type: "int", nullable: false)
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    IsMain = table.Column<bool>(type: "bit", nullable: false),
+                    IsEnable = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {

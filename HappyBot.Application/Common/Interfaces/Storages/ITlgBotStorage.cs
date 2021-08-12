@@ -1,4 +1,5 @@
-﻿using HappyBot.Application.Common.Models;
+﻿using System.Collections.Generic;
+using HappyBot.Application.Common.Models;
 
 namespace HappyBot.Application.Common.Interfaces.Storages
 {
@@ -16,17 +17,30 @@ namespace HappyBot.Application.Common.Interfaces.Storages
         void UpdateWebhooks();
 
         /// <summary>
-        /// Получить телеграм бота
+        /// Получить телеграм бота по индектификатору
         /// </summary>
         /// <param name="telegramBotId">Идентификатор телеграм бота</param>
         /// <returns>Телеграм бот</returns>
-        TelegramBotDto? Get(int telegramBotId);
+        TelegramBotDto? GetById(int telegramBotId);
         
         /// <summary>
-        /// Получить телеграм бота
+        /// Получить телеграм бота по токену
         /// </summary>
         /// <param name="token">Токен</param>
         /// <returns>Телеграм бот</returns>
-        TelegramBotDto? Get(string token);
+        TelegramBotDto? GetByToken(string token);
+
+        /// <summary>
+        /// Получить телеграм ботов по идентифкатору пользователя
+        /// </summary>
+        /// <param name="userId">Идентификатор пользователя</param>
+        /// <returns>Список телеграм ботов</returns>
+        IList<TelegramBotDto> GetByUserId(int userId);
+        
+        /// <summary>
+        /// Добавить телеграм бота
+        /// </summary>
+        /// <param name="telegramBotDto">телеграм бот</param>
+        void Add(TelegramBotDto telegramBotDto);
     }
 }
